@@ -39,3 +39,9 @@ migrate-down:
 	docker compose run --rm \
 		-e GOOSE_COMMAND=down \
 		todoapp-postgres-migrate
+
+app-run:
+	@export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs && \
+	export POSTGRES_HOST=localhost && \
+	go mod tidy && \
+	go run cmd/todoapp/main.go
