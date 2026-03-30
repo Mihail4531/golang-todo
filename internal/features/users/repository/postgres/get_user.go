@@ -7,7 +7,7 @@ import (
 
 	"github.com/Mihail4531/golang-todo/internal/core/domain"
 	core_errors "github.com/Mihail4531/golang-todo/internal/core/errors"
-	"github.com/jackc/pgx/v5"
+	core_postgres_pool "github.com/Mihail4531/golang-todo/internal/core/repository/postgres/pool"
 )
 
 func (r *UsersRepository) GetUser(ctx context.Context, userID int) (*domain.User, error) {
@@ -17,7 +17,7 @@ func (r *UsersRepository) GetUser(ctx context.Context, userID int) (*domain.User
 	var userModel UserModel
 	err := r.pool.QueryRow(ctx, query, userID).Scan(&userModel.ID, &userModel.Version, &userModel.FullName, &userModel.PhoneNumber)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, core_postgres_pool.ErrNoRows) {
 			return nil, fmt.Errorf("user with id='%d' %w", userID, core_errors.ErrNotFound)
 		}
 		return nil, fmt.Errorf("scan error: %w", err)
