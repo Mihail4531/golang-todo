@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	core_config "github.com/Mihail4531/golang-todo/internal/core/config"
 	core_logger "github.com/Mihail4531/golang-todo/internal/core/logger"
 	core_pgx_pool "github.com/Mihail4531/golang-todo/internal/core/repository/postgres/pool/pgx"
 	core_http_middleware "github.com/Mihail4531/golang-todo/internal/core/transport/http/middleware"
@@ -21,13 +22,10 @@ import (
 	"go.uber.org/zap"
 )
 
-var (
-	timeZone = time.UTC
-)
 
 func main() {
-		time.Local = timeZone
-
+	cfg := core_config.NewConfigMust()
+	time.Local = cfg.TimeZone
 
 	ctx, cancel := signal.NotifyContext(
 		context.Background(),
