@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	
 	core_errors "github.com/Mihail4531/golang-todo/internal/core/errors"
 )
 
@@ -30,6 +29,16 @@ func NewTask(id int, version int, title string, description *string, completed b
 		AuthorUserId: authorUserId,
 		CompletedAt:  completedAt,
 	}
+}
+func (t *Task) CompletedDuration() *time.Duration {
+	if !t.Completed {
+		return nil
+	}
+	if t.CompletedAt == nil {
+		return nil
+	}
+	duration := t.CompletedAt.Sub(t.CreatedAt)
+	return &duration
 }
 func NewTaskUninitialized(title string, description *string, authorUserId int) Task {
 	return NewTask(
