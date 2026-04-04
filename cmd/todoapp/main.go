@@ -13,6 +13,9 @@ import (
 	core_pgx_pool "github.com/Mihail4531/golang-todo/internal/core/repository/postgres/pool/pgx"
 	core_http_middleware "github.com/Mihail4531/golang-todo/internal/core/transport/http/middleware"
 	core_http_server "github.com/Mihail4531/golang-todo/internal/core/transport/server"
+	stat_repository_postgres "github.com/Mihail4531/golang-todo/internal/features/statistics/repository/postgres"
+	stat_service "github.com/Mihail4531/golang-todo/internal/features/statistics/service"
+	stat_transport_http "github.com/Mihail4531/golang-todo/internal/features/statistics/transport/http"
 	tasks_postgres_repository "github.com/Mihail4531/golang-todo/internal/features/tasks/repository/postgres"
 	tasks_service "github.com/Mihail4531/golang-todo/internal/features/tasks/service"
 	tasks_transport_http "github.com/Mihail4531/golang-todo/internal/features/tasks/transport/http"
@@ -21,7 +24,6 @@ import (
 	users_transport_http "github.com/Mihail4531/golang-todo/internal/features/users/transport/http"
 	"go.uber.org/zap"
 )
-
 
 func main() {
 	cfg := core_config.NewConfigMust()
@@ -50,6 +52,9 @@ func main() {
 	tasksRepository := tasks_postgres_repository.NewTasksRepository(pool)
 	tasksService := tasks_service.NewTasksService(tasksRepository)
 	taskTransportHTTP := tasks_transport_http.NewTasksHTTPHandler(tasksService)
+	statsRepository := stat_repository_postgres.NewStatRepository(pool)
+	statsService := stat_service.NewStatService(statsRepository)
+	statsTransportHTTP := stat_transport_http.NewStatHTTPHandler(statsService)
 	logger.Debug("initial HTTP server")
 	httpServer := core_http_server.NewHTTPServer(
 		core_http_server.NewConfigMust(),
@@ -62,6 +67,7 @@ func main() {
 	ApiVersionRouter := core_http_server.NewApiVersionRouter(core_http_server.ApiVersion1)
 	ApiVersionRouter.RegisterRoutes(usersTransportHTPP.Routes()...)
 	ApiVersionRouter.RegisterRoutes(taskTransportHTTP.Routes()...)
+	ApiVersionRouter.RegisterRoutes(statsTransportHTTP.Routes()...)
 	httpServer.RegisterApiRouters(ApiVersionRouter)
 	if err := httpServer.Run(ctx); err != nil {
 		logger.Error("HTTP server run error", zap.Error(err))
