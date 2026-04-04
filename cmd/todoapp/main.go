@@ -6,18 +6,29 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	core_logger "github.com/Mihail4531/golang-todo/internal/core/logger"
 	core_pgx_pool "github.com/Mihail4531/golang-todo/internal/core/repository/postgres/pool/pgx"
 	core_http_middleware "github.com/Mihail4531/golang-todo/internal/core/transport/http/middleware"
 	core_http_server "github.com/Mihail4531/golang-todo/internal/core/transport/server"
+	tasks_postgres_repository "github.com/Mihail4531/golang-todo/internal/features/tasks/repository/postgres"
+	tasks_service "github.com/Mihail4531/golang-todo/internal/features/tasks/service"
+	tasks_transport_http "github.com/Mihail4531/golang-todo/internal/features/tasks/transport/http"
 	users_postgres_repository "github.com/Mihail4531/golang-todo/internal/features/users/repository/postgres"
 	users_service "github.com/Mihail4531/golang-todo/internal/features/users/service"
 	users_transport_http "github.com/Mihail4531/golang-todo/internal/features/users/transport/http"
 	"go.uber.org/zap"
 )
 
+var (
+	timeZone = time.UTC
+)
+
 func main() {
+		time.Local = timeZone
+
+
 	ctx, cancel := signal.NotifyContext(
 		context.Background(),
 		syscall.SIGINT, syscall.SIGTERM,
@@ -38,6 +49,9 @@ func main() {
 	usersRepository := users_postgres_repository.NewUsersRepository(pool)
 	usersService := users_service.NewUsersService(usersRepository)
 	usersTransportHTPP := users_transport_http.NewUsersHTTPHandler(usersService)
+	tasksRepository := tasks_postgres_repository.NewTasksRepository(pool)
+	tasksService := tasks_service.NewTasksService(tasksRepository)
+	taskTransportHTTP := tasks_transport_http.NewTasksHTTPHandler(tasksService)
 	logger.Debug("initial HTTP server")
 	httpServer := core_http_server.NewHTTPServer(
 		core_http_server.NewConfigMust(),
@@ -49,6 +63,7 @@ func main() {
 	)
 	ApiVersionRouter := core_http_server.NewApiVersionRouter(core_http_server.ApiVersion1)
 	ApiVersionRouter.RegisterRoutes(usersTransportHTPP.Routes()...)
+	ApiVersionRouter.RegisterRoutes(taskTransportHTTP.Routes()...)
 	httpServer.RegisterApiRouters(ApiVersionRouter)
 	if err := httpServer.Run(ctx); err != nil {
 		logger.Error("HTTP server run error", zap.Error(err))

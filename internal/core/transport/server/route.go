@@ -7,19 +7,21 @@ import (
 )
 
 type Route struct {
-	Method  string
-	Path    string
-	Handler http.HandlerFunc
+	Method     string
+	Path       string
+	Handler    http.HandlerFunc
 	Middleware []core_http_middleware.Middleware
 }
- func (r *Route) WithMiddleware() http.Handler{
+
+func (r *Route) WithMiddleware() http.Handler {
 	return core_http_middleware.ChainMiddleware(r.Handler, r.Middleware...)
- }
+
+}
 func NewRoute(method string, path string, handler http.HandlerFunc) Route {
 	return Route{
 		Method:  method,
 		Path:    path,
 		Handler: handler,
-		
 	}
+	
 }
