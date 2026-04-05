@@ -48,3 +48,5 @@ app-run:
 
 app-deploy:
 	docker compose up -d --build todoapp
+app-undeploy:
+	docker compose down todoapp
